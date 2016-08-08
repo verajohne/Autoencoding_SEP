@@ -1,1 +1,1 @@
-# Autoencoding_SEP
+# Autoencoding_SEP (Stochastic Expectation Propagation)
