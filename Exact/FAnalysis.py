@@ -6,7 +6,7 @@ import pandas as pd
 from scipy.stats import norm
 from scipy.linalg import det
 import gauss as gauss
-
+from utils import util
 import seaborn as sns
 
 
@@ -23,7 +23,7 @@ class FAnalysis(object):
 		self.dimz = dimz
 		self.dimx = dimx
 		
-		data = self.generate_data(n)
+		data = util.generate_data(n, self.W, self.sigx, dimx, dimz)
 		self.observed = data[0]
 		self.latent = data[1]
 		
@@ -31,7 +31,7 @@ class FAnalysis(object):
 		self.cov = np.linalg.inv(self.prec)
 		
 		'''
-		values for normalisation computation
+		values for normalisation computation-- messy!
 		'''
 		temp1 = (2*np.pi)**(dimz/2.0)*np.sqrt(det(self.cov))
 		temp2 = det(2*np.pi*self.sigx*np.identity(dimz))
@@ -42,24 +42,6 @@ class FAnalysis(object):
 		self.pc_norm2 = np.dot(temp3, self.W.transpose())
 		
 		
-	def generate_data(self,n):
-		observed = np.zeros([n,self.dimx])
-		latent = np.zeros([n, self.dimz])
-	
-		for i in xrange(n):
-			#latent variable
-			z = np.random.normal(0,1, size = (self.dimz,))
-
-			#observed
-			mu = np.dot(self.W,z)
-			cov = self.sigx*np.identity(3)
-			x = np.random.multivariate_normal(mu, cov)
-		
-			observed[i] = x
-			latent[i] = z
-
-		return observed, latent
-	
 	def get_normalisation_constant(self, x):
 		a = 1/(2*self.sigx)
 		temp = - a*np.dot(x.transpose(), x) + a*np.dot(np.dot(x.transpose(), self.pc_norm2), x)
@@ -74,6 +56,11 @@ class FAnalysis(object):
 		return np.dot(temp, x)
 		
 	def EP(self):
+		'''
+		one iteration across all datapoints performing exact moment mathing
+		returns means and covariance of latent variable distribution, 
+		and scaling normalilisation constant
+		'''
 		norm = 1
 		mus = np.array([])
 		norms = []
@@ -89,7 +76,10 @@ class FAnalysis(object):
 		sig = np.linalg.inv(sig)
 		return sig, mus, norms
 		
-		
+	def fit(self):
+		#currently only one iteration necessary for EP
+		#W assumed known- test with SEP/MLE combination
+		self.EP()
 		
 	
 	

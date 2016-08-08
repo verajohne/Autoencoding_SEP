@@ -3,9 +3,9 @@ import numpy as np
 
 from utils import util
 
-from SEP_EP.Fa import Fa
+from SEP_EP_tensorflow.Fa import Fa
 
-def main(n_iter = 10, learning_rate = 1e-10, num_samples = 1):
+def main(n_iter = 100, learning_rate = 1e-1, num_samples = 1):
 
 	#config = tf.ConfigProto(
     #    device_count = {'GPU': 0}
@@ -17,9 +17,8 @@ def main(n_iter = 10, learning_rate = 1e-10, num_samples = 1):
 
 
 	sess = tf.Session()
-	#tf.device("/cpu:0")
 
-	data_size = 3
+	data_size = 1000
 	model = Fa(data_size, dimx =3, dimz = 2)
 	model.fit(sess, n_iter = n_iter, learning_rate = learning_rate)
 

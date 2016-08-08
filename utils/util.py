@@ -37,6 +37,10 @@ def gradient_descent(objFunc, w):
 	return w,a
 
 
+'''
+few messy functions for playing with gaussians for testing 
+'''
+
 def product_gaussians(mu1, mu2, sig1, sig2):
 	#sigma are matrices
 	assert mu1.shape == mu2.shape, "Mu dimensions are not the same"
