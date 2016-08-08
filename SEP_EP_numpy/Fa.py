@@ -37,21 +37,15 @@ class Fa(object):
 		'''
 		#SEP params
 		f = dimx*dimz
-		self.SEP_prior_mean = np.zeros(f).reshape((f,1)) #fx1
-		self.SEP_prior_prec = np.identity(f)	#fxf
+		self.SEP_prior_mean = np.zeros(f).reshape((f,1)) 
+		self.SEP_prior_prec = np.identity(f)
 
 		self.u = np.zeros(f).reshape((f,))	
-		#self.V = 1e4*np.eye(f)
 		self.V = (1e-4)*np.eye(f)
 		
 		
-		self.R = np.random.randn(dimz,dimx) # 2x3
-		self.S = np.identity(dimz) #1e4*np.eye(2)
-		#I = np.linalg.inv(self.sigx*np.eye(3))
-		#temp = np.eye(2) + np.dot(np.dot(self.W.T, I), self.W)
-		#temp = np.linalg.inv(temp)
-		#temp = np.dot(np.dot(temp, self.W.T), I)
-		#self.R = temp
+		self.R = np.random.randn(dimz,dimx)
+		self.S = np.identity(dimz) 
 		
 		I = np.linalg.inv(self.sigx*np.eye(3))
 		S = np.eye(2) + np.dot(np.dot(self.W.T, I), self.W)
@@ -122,8 +116,8 @@ class Fa(object):
 	
 		#recognition model
 		mu = np.dot(R, x)
-		#var = np.linalg.inv(self.S)
-		#pz = gaussian.Gaussian_full(mu, var)
+		#cov = np.linalg.inv(self.S)
+		#pz = gaussian.Gaussian_full(mu, cov)
 		#pz = pz.eval_log(z.reshape((self.dimz,)))   
 		pz = gaussian.eval_log_prec(mu, self.S, z.reshape((self.dimz,)))
 
@@ -131,7 +125,7 @@ class Fa(object):
 		#cov = np.linalg.inv(V)
 		#pq = gaussian.Gaussian_full(u, cov)
 		#pq = pq.eval_log(w.reshape(-1))
-		pq = gaussian.eval_log_prec(u, V, w.reshape(-1)) 
+		pq = gaussian.eval_log_prec(u, V, w.reshape(-1))
 		
 		#print pq, pz
 		res = joint - pz - pq
@@ -139,7 +133,9 @@ class Fa(object):
 		return res
 		
 	def get_W(self, x, R, u, V):
-		#calculate w and zp
+		'''
+		Computed the self normalised importance weight w for M samples
+		'''
 		M = 10
 		M_gammas = []
 		
@@ -150,12 +146,9 @@ class Fa(object):
 		
 		M_gammas = np.array(M_gammas)
 		M_gammas = M_gammas - sp.misc.logsumexp(M_gammas)
-		#print M_gammas
 		
-
 		return M_gammas
-		
-		
+				
 	def objective(self, x, R, u, V):
 		
 		M_gammas = self.get_W( x, R, u, V)
@@ -169,7 +162,7 @@ class Fa(object):
 	
 	def get_marginal(self, u, V, R, x_test):
 		'''
-		current metric to test convergence-- log space
+		predictive marginal likelihood currenly used to test convergence
 		'''
 		I = self.sigx*np.identity(self.dimx)
 		mu = np.zeros(self.dimx,)
@@ -186,18 +179,13 @@ class Fa(object):
 				var = np.dot(w, np.transpose(w))
 				var = np.add(var, self.sigx*I)
 				px = gaussian.Gaussian_full(mu, var)
-				px = px.eval(x)#eval_log_properly(x)
+				px = px.eval(x) ##eval
 				mc = mc + px
 				
 			mc = mc/float(n_samples)
 			mc = np.log(mc)
 			ll += mc
 			
-			if np.isnan(ll):
-				pass
-				#print "marginal issue: ", ll, px, w, u, V, R, mc
-				#sdfsfd
-		
 		return (ll/float(test_size))
 	 
 	def fit(self, n_iter):
@@ -238,30 +226,14 @@ class Fa(object):
 			np.save('learn', np.array(llh))
 			
 		np.save('learn', np.array(llh))
-		print self.W
-		print fa.sample_w(u, V).reshape(-1)
-		print fa.sample_w(u, V).reshape(-1)
-		print self.sample_w(self.u, self.V)
-		print self.observed[0]
-		print self.S
-		print self.R
-		print self.u
+
+
 		
 if __name__ == "__main__":
-
+	##for quick testing
 	
 	fa = Fa(20,3,2)
 	fa.fit(50)
-	
-	#u = np.array([-0.85706735,  0.45140902, -0.18180464, -0.62977443,  0.02388931, -0.13997128])
-	##V = 1e2*np.eye(6)
-	#print fa.sample_w(u, V).reshape(-1)
-	#print fa.sample_w(u, V).reshape(-1)
-	#print fa.sample_w(u, V).reshape(-1)
-	
-	#print np.array([[-0.29110789, -1.23847604],
- #[ 1.37602736, -1.89725941],
- #[ 0.94741209,  0.25277666]]).reshape(-1)
 
 	
 	
